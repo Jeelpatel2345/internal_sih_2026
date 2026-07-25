@@ -1,0 +1,316 @@
+.register-page { min-height: 100vh; }
+
+.register-hero {
+  background: var(--gradient-primary);
+  padding: 9rem 0 3rem; /* logo bar + navbar offset */
+  text-align: center;
+}
+
+.register-title {
+  font-family: var(--font-primary);
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 900;
+  color: white;
+  margin-bottom: 0.75rem;
+}
+
+.register-subtitle {
+  font-size: 1.0625rem;
+  color: rgba(255,255,255,0.75);
+}
+
+.register-body {
+  padding: 3rem 1.5rem;
+  max-width: 780px !important;
+}
+
+.register-card {
+  padding: 2.5rem;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+}
+
+@media (max-width: 640px) {
+  .register-card { padding: 1.5rem; }
+}
+
+/* Step header */
+.step-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.step-icon {
+  color: var(--color-red);
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.step-title {
+  font-family: var(--font-primary);
+  font-size: 1.375rem;
+  font-weight: 800;
+  color: var(--color-text);
+  margin-bottom: 0.25rem;
+}
+
+.step-desc {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+/* Steps bar fix */
+.step-line {
+  position: absolute;
+  top: 1.25rem;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  background: var(--color-border);
+}
+
+/* Participant fields */
+.participant-fields { display: flex; flex-direction: column; }
+
+.fields-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+@media (max-width: 640px) {
+  .fields-row-2 { grid-template-columns: 1fr; }
+}
+
+/* Team name input */
+.team-name-input-wrapper { position: relative; }
+.team-name-input { padding-right: 2.75rem; }
+.team-name-status {
+  position: absolute;
+  right: 0.875rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+}
+
+/* Name rules box */
+.name-rules {
+  background: var(--color-bg-soft);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.name-rules-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 0.5rem;
+}
+
+.name-rules ul {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.name-rules ul li {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+/* Member block */
+.member-block {
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+  transition: border-color var(--transition-fast);
+}
+.member-block:hover { border-color: var(--color-red); }
+
+.member-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.member-title {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-family: var(--font-primary);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.member-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+/* Female notice */
+.female-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: var(--radius-md);
+  padding: 0.875rem 1.125rem;
+  font-size: 0.875rem;
+  color: #856404;
+  margin-bottom: 1.5rem;
+}
+
+/* Submit error */
+.submit-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-md);
+  padding: 0.875rem 1.125rem;
+  font-size: 0.875rem;
+  color: var(--color-error);
+  margin-bottom: 1.25rem;
+}
+
+/* Step actions */
+.step-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+@media (max-width: 480px) {
+  .step-actions { flex-direction: column; }
+  .step-actions .btn { width: 100%; }
+}
+
+/* Closed state */
+.register-closed {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: var(--color-bg-soft);
+}
+
+.closed-card {
+  text-align: center;
+  padding: 3rem;
+  max-width: 400px;
+}
+
+.closed-icon { font-size: 3rem; margin-bottom: 1rem; }
+
+.closed-card h2 {
+  font-family: var(--font-primary);
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 0.75rem;
+}
+
+.closed-card p { color: var(--color-text-muted); }
+
+/* Success Modal */
+.success-modal { text-align: center; max-width: 460px; }
+.success-icon { font-size: 3.5rem; margin-bottom: 1rem; animation: float 3s ease-in-out infinite; }
+
+.success-title {
+  font-family: var(--font-primary);
+  font-size: 1.625rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  color: var(--color-text);
+}
+
+.success-desc { color: var(--color-text-muted); margin-bottom: 1.5rem; }
+
+.reg-id-box {
+  background: var(--gradient-glow);
+  border: 1.5px solid rgba(193,39,45,0.2);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.reg-id-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.375rem;
+}
+
+.reg-id-value {
+  font-family: var(--font-primary);
+  font-size: 1.75rem;
+  font-weight: 900;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.375rem;
+}
+
+.reg-id-hint {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.success-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  margin-bottom: 1.5rem;
+}
+
+.success-step {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+}
+
+.success-step.complete {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.success-step.pending {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.success-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}

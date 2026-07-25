@@ -1,0 +1,83 @@
+/* ── Logo Corner: fixed top-right ─────────────────────────── */
+.logo-corner {
+  position: fixed;
+  top: 1rem;
+  right: 1.25rem;
+  z-index: 950; /* above navbar (900) */
+}
+
+.logo-corner-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.85rem;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+  transition: background 0.35s ease, box-shadow 0.35s ease;
+}
+
+/* When page is scrolled, make it more solid */
+.logo-corner-inner:hover {
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.logo-corner-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.logo-corner-img {
+  width: 1.75rem;
+  height: 1.75rem;
+  object-fit: contain;
+  border-radius: 4px;
+  background: white;
+  padding: 1px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+
+.logo-corner-img--round {
+  border-radius: 50%;
+}
+
+.logo-corner-name {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  white-space: nowrap;
+}
+
+.logo-corner-divider {
+  width: 1px;
+  height: 1.4rem;
+  background: rgba(255, 255, 255, 0.4);
+  flex-shrink: 0;
+}
+
+/* Mobile: hide labels, keep just logos */
+@media (max-width: 640px) {
+  .logo-corner {
+    top: 0.6rem;
+    right: 0.75rem;
+  }
+  .logo-corner-inner {
+    padding: 0.35rem 0.65rem;
+    gap: 0.45rem;
+  }
+  .logo-corner-name {
+    display: none;
+  }
+  .logo-corner-img {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+}
