@@ -1,15 +1,35 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { SIH_RULES } from '../../constants'
 import './Sections.css'
 
+// ─── Scroll Reveal Hook ─────────────────────────────────────────
+function useReveal(threshold = 0.12) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect() } },
+      { threshold }
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [threshold])
+
+  return { ref, visible }
+}
+
 export function RulesSection() {
   const [open, setOpen] = useState<number | null>(null)
+  const { ref, visible } = useReveal()
 
   return (
     <section className="section bg-soft" id="rules">
       <div className="container">
-        <div className="section-header">
+        <div className={`section-header reveal ${visible ? 'visible' : ''}`} ref={ref}>
           <div className="section-badge">📋 Participation Rules</div>
           <h2 className="section-title">
             Rules & <span>Guidelines</span>
@@ -20,22 +40,8 @@ export function RulesSection() {
         </div>
 
         <div className="rules-grid">
-          {SIH_RULES.map((rule) => (
-            <div key={rule.id} className="accordion-item">
-              <button
-                className={`accordion-trigger ${open === rule.id ? 'open' : ''}`}
-                onClick={() => setOpen(open === rule.id ? null : rule.id)}
-                aria-expanded={open === rule.id}
-              >
-                <span>
-                  <span className="rule-num">Rule {rule.id}.</span> {rule.title}
-                </span>
-                <ChevronDown size={18} className="accordion-icon" />
-              </button>
-              {open === rule.id && (
-                <div className="accordion-content">{rule.content}</div>
-              )}
-            </div>
+          {SIH_RULES.map((rule, idx) => (
+            <RuleItem key={rule.id} rule={rule} index={idx} open={open} setOpen={setOpen} />
           ))}
         </div>
       </div>
@@ -43,8 +49,48 @@ export function RulesSection() {
   )
 }
 
+function RuleItem({
+  rule,
+  index,
+  open,
+  setOpen,
+}: {
+  rule: { id: number; title: string; content: string }
+  index: number
+  open: number | null
+  setOpen: (id: number | null) => void
+}) {
+  const { ref, visible } = useReveal(0.05)
+  const isOpen = open === rule.id
+
+  return (
+    <div
+      ref={ref}
+      className={`accordion-item reveal ${visible ? 'visible' : ''}`}
+      style={{ transitionDelay: `${index * 0.06}s` }}
+    >
+      <button
+        className={`accordion-trigger ${isOpen ? 'open' : ''}`}
+        onClick={() => setOpen(isOpen ? null : rule.id)}
+        aria-expanded={isOpen}
+      >
+        <span>
+          <span className="rule-num">Rule {rule.id}.</span> {rule.title}
+        </span>
+        <ChevronDown size={18} className="accordion-icon" />
+      </button>
+      <div className={`accordion-body ${isOpen ? 'open' : ''}`}>
+        <div className="accordion-body-inner">
+          <div className="accordion-content">{rule.content}</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function FAQSection() {
   const [open, setOpen] = useState<number | null>(0)
+  const { ref, visible } = useReveal()
 
   const faqs = [
     { q: 'What is Internal SIH 2026?', a: 'Internal SIH 2026 is the college-level selection round for Smart India Hackathon 2026, organized by KSV / VSITR. Top teams from this internal round will represent our college at the national level.' },
@@ -60,7 +106,7 @@ export function FAQSection() {
   return (
     <section className="section" id="faq">
       <div className="container">
-        <div className="section-header">
+        <div className={`section-header reveal ${visible ? 'visible' : ''}`} ref={ref}>
           <div className="section-badge">❓ Frequently Asked</div>
           <h2 className="section-title">Common <span>Questions</span></h2>
           <p className="section-subtitle">
@@ -70,18 +116,7 @@ export function FAQSection() {
 
         <div className="faq-grid">
           {faqs.map((faq, i) => (
-            <div key={i} className="accordion-item">
-              <button
-                className={`accordion-trigger ${open === i ? 'open' : ''}`}
-                onClick={() => setOpen(open === i ? null : i)}
-              >
-                <span>{faq.q}</span>
-                <ChevronDown size={18} className="accordion-icon" />
-              </button>
-              {open === i && (
-                <div className="accordion-content">{faq.a}</div>
-              )}
-            </div>
+            <FAQItem key={i} faq={faq} index={i} open={open} setOpen={setOpen} />
           ))}
         </div>
       </div>
@@ -89,7 +124,45 @@ export function FAQSection() {
   )
 }
 
+function FAQItem({
+  faq,
+  index,
+  open,
+  setOpen,
+}: {
+  faq: { q: string; a: string }
+  index: number
+  open: number | null
+  setOpen: (i: number | null) => void
+}) {
+  const { ref, visible } = useReveal(0.05)
+  const isOpen = open === index
+
+  return (
+    <div
+      ref={ref}
+      className={`accordion-item reveal ${visible ? 'visible' : ''}`}
+      style={{ transitionDelay: `${index * 0.05}s` }}
+    >
+      <button
+        className={`accordion-trigger ${isOpen ? 'open' : ''}`}
+        onClick={() => setOpen(isOpen ? null : index)}
+      >
+        <span>{faq.q}</span>
+        <ChevronDown size={18} className="accordion-icon" />
+      </button>
+      <div className={`accordion-body ${isOpen ? 'open' : ''}`}>
+        <div className="accordion-body-inner">
+          <div className="accordion-content">{faq.a}</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function ClubsSection() {
+  const { ref, visible } = useReveal()
+
   const clubs = [
     {
       name: 'Research Club',
@@ -97,6 +170,8 @@ export function ClubsSection() {
       coordinator: 'Amit Modi',
       email: 'research.club@vsitr.ac.in',
       color: 'var(--color-red)',
+      gradientFrom: '#C1272D',
+      gradientTo: '#ff6b6b',
       description: 'Driving academic curiosity and cutting-edge research, guiding students to explore new frontiers in science and technology.',
       icon: '🔬',
       tag: 'Organizer',
@@ -107,6 +182,8 @@ export function ClubsSection() {
       coordinator: 'Ankit Vaghela',
       email: 'coding.club@vsitr.ac.in',
       color: 'var(--color-blue)',
+      gradientFrom: '#1B3F8B',
+      gradientTo: '#4c8fd6',
       description: 'Building the next generation of coders and developers through hackathons, workshops, and competitive programming.',
       icon: '💻',
       tag: 'Co-Organizer',
@@ -117,6 +194,8 @@ export function ClubsSection() {
       coordinator: 'Prof. Sanjay Makwana',
       email: 'design.club@vsitr.ac.in',
       color: '#7C3AED',
+      gradientFrom: '#7C3AED',
+      gradientTo: '#c4b5fd',
       description: 'Fostering creative thinking and visual communication skills through UI/UX design, branding, and digital art.',
       icon: '🎨',
       tag: 'Co-Organizer',
@@ -127,6 +206,8 @@ export function ClubsSection() {
       coordinator: 'Nehal Shah',
       email: 'softskill.club@vsitr.ac.in',
       color: '#D97706',
+      gradientFrom: '#D97706',
+      gradientTo: '#fbbf24',
       description: 'Empowering students with essential soft skills — communication, teamwork, leadership, and professional etiquette.',
       icon: '🌟',
       tag: 'Co-Organizer',
@@ -136,7 +217,7 @@ export function ClubsSection() {
   return (
     <section className="section bg-soft" id="clubs">
       <div className="container">
-        <div className="section-header">
+        <div className={`section-header reveal ${visible ? 'visible' : ''}`} ref={ref}>
           <div className="section-badge">🏛️ Organizing Bodies</div>
           <h2 className="section-title">Clubs & <span>Organizers</span></h2>
           <p className="section-subtitle">
@@ -145,31 +226,69 @@ export function ClubsSection() {
         </div>
 
         <div className="grid-4">
-          {clubs.map((club) => (
-            <div key={club.name} className="club-card card">
-              <div className="club-header">
-                <div className="club-icon" style={{ background: club.color }}>
-                  {club.icon}
-                </div>
-                <span className="badge badge-info" style={{ fontSize: '0.65rem' }}>{club.tag}</span>
-              </div>
-              <h3 className="club-name">{club.name}</h3>
-              <p className="club-subtitle">{club.subtitle}</p>
-              <p className="club-desc">{club.description}</p>
-              <div className="club-footer">
-                <div className="club-coord">
-                  <span className="club-coord-label">Coordinator</span>
-                  <span className="club-coord-name">{club.coordinator}</span>
-                </div>
-                <a href={`mailto:${club.email}`} className="club-email">
-                  {club.email}
-                </a>
-              </div>
-            </div>
+          {clubs.map((club, idx) => (
+            <ClubCard key={club.name} club={club} index={idx} />
           ))}
         </div>
       </div>
     </section>
+  )
+}
+
+function ClubCard({ club, index }: { club: {
+  name: string; subtitle: string; coordinator: string; email: string;
+  color: string; gradientFrom: string; gradientTo: string;
+  description: string; icon: string; tag: string;
+}; index: number }) {
+  const { ref, visible } = useReveal(0.08)
+  const [flipped, setFlipped] = useState(false)
+
+  return (
+    <div
+      ref={ref}
+      className={`club-flip-container reveal ${visible ? 'visible' : ''}`}
+      style={{ transitionDelay: `${index * 0.1}s` }}
+      onMouseEnter={() => setFlipped(true)}
+      onMouseLeave={() => setFlipped(false)}
+    >
+      <div className={`club-flip-inner ${flipped ? 'flipped' : ''}`}>
+        {/* Front */}
+        <div className="club-card card club-front">
+          <div className="club-header">
+            <div
+              className="club-icon"
+              style={{ background: `linear-gradient(135deg, ${club.gradientFrom}, ${club.gradientTo})` }}
+            >
+              {club.icon}
+            </div>
+            <span className="badge badge-info" style={{ fontSize: '0.65rem' }}>{club.tag}</span>
+          </div>
+          <h3 className="club-name">{club.name}</h3>
+          <p className="club-subtitle">{club.subtitle}</p>
+          <p className="club-desc">{club.description}</p>
+          <div className="club-footer">
+            <div className="club-coord">
+              <span className="club-coord-label">Coordinator</span>
+              <span className="club-coord-name">{club.coordinator}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Back */}
+        <div
+          className="club-card club-back"
+          style={{ background: `linear-gradient(135deg, ${club.gradientFrom}, ${club.gradientTo})` }}
+        >
+          <div className="club-back-icon">{club.icon}</div>
+          <h3 className="club-back-name">{club.name}</h3>
+          <p className="club-back-coord">{club.coordinator}</p>
+          <a href={`mailto:${club.email}`} className="club-back-email">
+            ✉ {club.email}
+          </a>
+          <div className="club-back-tag">{club.tag}</div>
+        </div>
+      </div>
+    </div>
   )
 }
 

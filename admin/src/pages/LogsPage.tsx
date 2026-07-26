@@ -23,11 +23,17 @@ const ACTION_COLORS: Record<string, string> = {
   UPDATE_SETTINGS: 'badge-success',
 }
 
+const formatDateTime = (value?: string) => {
+  if (!value) return '—'
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+}
+
 export default function LogsPage() {
   const [page, setPage] = useState(1)
   const [action, setAction] = useState('')
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['logs', page, action],
     queryFn: () => getLogs({ page, limit: 30, action }).then((r) => r.data),
   })
@@ -70,6 +76,8 @@ export default function LogsPage() {
             <tbody>
               {isLoading ? (
                 <tr><td colSpan={6} style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>Loading...</td></tr>
+              ) : isError ? (
+                <tr><td colSpan={6}><div className="empty-state"><div className="empty-state-icon">!</div><h3>Unable to load activity logs</h3><p>Please refresh the page or check your connection.</p></div></td></tr>
               ) : logs.length === 0 ? (
                 <tr>
                   <td colSpan={6}>
@@ -83,7 +91,7 @@ export default function LogsPage() {
               ) : logs.map((log) => (
                 <tr key={log._id}>
                   <td style={{ color: 'var(--color-text-muted)', fontSize: '0.8125rem', whiteSpace: 'nowrap' }}>
-                    {new Date(log.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    {formatDateTime(log.createdAt)}
                   </td>
                   <td style={{ fontWeight: 600, fontSize: '0.875rem' }}>{log.adminName}</td>
                   <td><span className={`badge ${ACTION_COLORS[log.action] || 'badge-gray'}`}>{log.action}</span></td>

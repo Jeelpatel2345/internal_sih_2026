@@ -29,8 +29,8 @@ adminApi.interceptors.response.use(
 )
 
 // ─── Auth APIs ─────────────────────────────────────────────────
-export const authLogin = (email: string, password: string) =>
-  adminApi.post('/auth/login', { email, password })
+export const authLogin = (email: string, password: string, selectedRole: string) =>
+  adminApi.post('/auth/login', { email, password, selectedRole })
 
 export const authLogout = (refreshToken?: string) =>
   adminApi.post('/auth/logout', { refreshToken })

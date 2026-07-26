@@ -22,7 +22,7 @@ import { createError } from '../middlewares/error.middleware';
 import { AuthRequest } from '../middlewares/auth.middleware';
 
 export const login = async (req: Request, res: Response): Promise<void> => {
-  const { email, password } = req.body;
+  const { email, password, selectedRole } = req.body;
 
   const admin = await findAdminByEmail(email);
   if (!admin) {
@@ -33,6 +33,12 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   const isValid = await comparePassword(password, admin.password_hash);
   if (!isValid) {
     res.status(401).json({ success: false, message: 'Invalid credentials.' });
+    return;
+  }
+
+  const requiredRole = selectedRole === 'super_admin' ? 'super_admin' : 'admin';
+  if (selectedRole && admin.role !== requiredRole) {
+    res.status(403).json({ success: false, message: 'The selected role does not match this admin account.' });
     return;
   }
 

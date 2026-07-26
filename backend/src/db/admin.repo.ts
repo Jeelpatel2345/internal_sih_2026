@@ -47,6 +47,21 @@ export const createAdmin = async (params: {
   return res.rows[0];
 };
 
+export const findAllAdmins = async (): Promise<AdminRow[]> => {
+  const res = await queryNeon(
+    `SELECT * FROM admins ORDER BY created_at DESC`
+  );
+  return res.rows;
+};
+
+export const deleteAdminById = async (id: string): Promise<AdminRow | null> => {
+  const res = await queryNeon(
+    `DELETE FROM admins WHERE id = $1 RETURNING *`,
+    [id]
+  );
+  return res.rows[0] ?? null;
+};
+
 export const comparePassword = async (plain: string, hash: string): Promise<boolean> => {
   return bcrypt.compare(plain, hash);
 };

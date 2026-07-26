@@ -1,20 +1,18 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useForm, useFieldArray, Controller } from 'react-hook-form'
+import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { CheckCircle, AlertCircle, X, Plus, Trash2, Users, UserCheck, ClipboardList, ArrowRight, ArrowLeft } from 'lucide-react'
+import { CheckCircle, AlertCircle, Users, UserCheck, ClipboardList, ArrowRight, ArrowLeft } from 'lucide-react'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { useCallback as useDebounce } from 'react'
 import toast from 'react-hot-toast'
 import Navbar from '../components/layout/Navbar'
 import Footer from '../components/layout/Footer'
-import LogoBar from '../components/layout/LogoBar'
 import { checkTeamName, registerTeam, getRegistrationStatus, type RegisterTeamPayload } from '../services/api'
 import { DEPARTMENTS, SEMESTERS } from '../constants'
 import './RegisterPage.css'
 
-// ─── Schemas ────────────────────────────────────────────────────
+// ─── Schemas ──────────────────────────────────────────────
 const participantSchema = z.object({
   fullName: z.string().min(2, 'Name must be at least 2 characters').max(100),
   gender: z.enum(['Male', 'Female', 'Other'], { message: 'Select gender' }),
@@ -33,21 +31,54 @@ type Step1Form = z.infer<typeof step1Schema>
 type Step2Form = z.infer<typeof step2Schema>
 type Step3Form = z.infer<typeof step3Schema>
 
+type ApiError = {
+  message?: string
+  response?: { data?: { message?: string } }
+}
+
+const registrationErrorMessage = (error: ApiError) =>
+  error.response?.data?.message ||
+  (error.message === 'Network Error' ? 'Unable to reach the registration server. Make sure the backend is running and try again.' : null) ||
+  'Registration failed. Please try again.'
+
 const EMPTY_MEMBER = { fullName: '', gender: 'Male' as const, enrollmentNumber: '', semester: 1, department: '', mobile: '', email: '' }
 
-// ─── Participant Form Fields ─────────────────────────────────────
-function ParticipantFields({ prefix, register, errors, watch }: {
+// ─── Confetti ────────────────────────────────────────────
+function launchConfetti() {
+  const colors = ['#C1272D', '#1B3F8B', '#ffd93d', '#4ade80', '#ff6b6b', '#6bceff']
+  for (let i = 0; i < 60; i++) {
+    const el = document.createElement('div')
+    el.className = 'confetti-piece'
+    el.style.left = Math.random() * 100 + 'vw'
+    el.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)]
+    el.style.width = Math.random() * 8 + 5 + 'px'
+    el.style.height = Math.random() * 8 + 5 + 'px'
+    el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px'
+    el.style.animationDuration = Math.random() * 2 + 2 + 's'
+    el.style.animationDelay = Math.random() * 1 + 's'
+    document.body.appendChild(el)
+    setTimeout(() => el.remove(), 4000)
+  }
+}
+
+// ─── Participant Form Fields ──────────────────────────────
+function ParticipantFields({ prefix, register, errors }: {
   prefix: string
-  register: ReturnType<typeof useForm>['register']
+  register: (name: any, options?: any) => any
   errors: Record<string, { message?: string }>
-  watch: ReturnType<typeof useForm>['watch']
 }) {
   return (
     <div className="participant-fields">
       <div className="fields-row-2">
         <div className="form-group">
           <label className="form-label">Full Name <span className="required">*</span></label>
-          <input {...register(`${prefix}.fullName`)} className={`form-input ${errors?.[`${prefix}.fullName`] ? 'error' : ''}`} placeholder="Priya Patel" />
+          <div style={{ position: 'relative' }}>
+            <input
+              {...register(`${prefix}.fullName`)}
+              className={`form-input ${errors?.[`${prefix}.fullName`] ? 'error' : ''}`}
+              placeholder="Priya Patel"
+            />
+          </div>
           {errors?.[`${prefix}.fullName`] && <p className="form-error"><AlertCircle size={12} />{errors[`${prefix}.fullName`]?.message}</p>}
         </div>
         <div className="form-group">
@@ -64,7 +95,12 @@ function ParticipantFields({ prefix, register, errors, watch }: {
       <div className="fields-row-2">
         <div className="form-group">
           <label className="form-label">Enrollment Number <span className="required">*</span></label>
-          <input {...register(`${prefix}.enrollmentNumber`)} className="form-input" placeholder="21CE001" style={{ textTransform: 'uppercase' }} />
+          <input
+            {...register(`${prefix}.enrollmentNumber`)}
+            className="form-input"
+            placeholder="21CE001"
+            style={{ textTransform: 'uppercase' }}
+          />
           {errors?.[`${prefix}.enrollmentNumber`] && <p className="form-error"><AlertCircle size={12} />{errors[`${prefix}.enrollmentNumber`]?.message}</p>}
         </div>
         <div className="form-group">
@@ -100,9 +136,17 @@ function ParticipantFields({ prefix, register, errors, watch }: {
   )
 }
 
-// ─── Success Modal ────────────────────────────────────────────────
+// ─── Success Modal ────────────────────────────────────────
 function SuccessModal({ regId, teamName, onClose }: { regId: string; teamName: string; onClose: () => void }) {
   const navigate = useNavigate()
+  const launched = useRef(false)
+
+  useEffect(() => {
+    if (!launched.current) {
+      launched.current = true
+      launchConfetti()
+    }
+  }, [])
 
   const handleProceed = () => {
     localStorage.setItem('sih2026_reg_id', regId)
@@ -113,6 +157,7 @@ function SuccessModal({ regId, teamName, onClose }: { regId: string; teamName: s
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal success-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="success-confetti" />
         <div className="success-icon">🎉</div>
         <h2 className="success-title">Registration Successful!</h2>
         <p className="success-desc">
@@ -139,7 +184,11 @@ function SuccessModal({ regId, teamName, onClose }: { regId: string; teamName: s
         <div className="success-actions">
           <button
             className="btn btn-primary btn-full"
-            onClick={() => { localStorage.setItem('sih2026_reg_id', regId); localStorage.setItem('sih2026_team_name', teamName); navigate('/mentor') }}
+            onClick={() => {
+              localStorage.setItem('sih2026_reg_id', regId)
+              localStorage.setItem('sih2026_team_name', teamName)
+              navigate('/mentor')
+            }}
           >
             Submit Mentor Details Now →
           </button>
@@ -152,7 +201,26 @@ function SuccessModal({ regId, teamName, onClose }: { regId: string; teamName: s
   )
 }
 
-// ─── Main Page ────────────────────────────────────────────────────
+// ─── Female Tracker ───────────────────────────────────────
+function FemaleTracker({ count }: { count: number }) {
+  const isMet = count >= 1
+  return (
+    <div className="female-tracker">
+      <span className="female-tracker-icon">♀️</span>
+      <div className="female-tracker-text">
+        <strong style={{ color: isMet ? 'var(--color-success)' : '#be185d' }}>
+          {count} / 1 female member
+        </strong>
+        {' '}— {isMet ? 'Requirement met ✓' : 'At least 1 required'}
+      </div>
+      <div className="female-tracker-dots">
+        <div className={`female-dot ${count >= 1 ? 'filled' : ''}`} />
+      </div>
+    </div>
+  )
+}
+
+// ─── Main Page ────────────────────────────────────────────
 export default function RegisterPage() {
   const [step, setStep] = useState(1)
   const [teamName, setTeamName] = useState('')
@@ -160,55 +228,61 @@ export default function RegisterPage() {
   const [nameStatus, setNameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'forbidden'>('idle')
   const [successData, setSuccessData] = useState<{ regId: string; teamName: string } | null>(null)
 
-  // Check if registration is open
   const { data: statusData } = useQuery({
     queryKey: ['regStatus'],
     queryFn: () => getRegistrationStatus().then((r) => r.data),
   })
   const isOpen = statusData?.data?.isOpen !== false
 
-  // ── Step 1 Form
   const step1Form = useForm<Step1Form>({ resolver: zodResolver(step1Schema) })
-  // ── Step 2 Form
-  const step2Form = useForm<Step2Form>({ resolver: zodResolver(step2Schema) })
-  // ── Step 3 Form
+  const step2Form = useForm<Step2Form>({ resolver: zodResolver(step2Schema) as any })
   const step3Form = useForm<Step3Form>({
-    resolver: zodResolver(step3Schema),
+    resolver: zodResolver(step3Schema) as any,
     defaultValues: {
       members: Array(5).fill(null).map(() => ({ ...EMPTY_MEMBER })),
     },
   })
   const { fields } = useFieldArray({ control: step3Form.control, name: 'members' })
 
-  // Mutation
+  // Watch genders for female tracker
+  const watchedGenders = step3Form.watch('members')
+  const femaleCount = (watchedGenders || []).filter((m) => m?.gender === 'Female').length
+
   const registerMutation = useMutation({
     mutationFn: (payload: RegisterTeamPayload) => registerTeam(payload).then((r) => r.data),
     onSuccess: (data) => {
       setSuccessData({ regId: data.data.registrationId, teamName: data.data.teamName })
     },
-    onError: (err: { response?: { data?: { message?: string } } }) => {
-      toast.error(err?.response?.data?.message || 'Registration failed. Please try again.')
+    onError: (err: ApiError) => {
+      toast.error(registrationErrorMessage(err))
     },
   })
 
-  // Team name check with debounce
   const checkName = useCallback(async (name: string) => {
-    if (name.length < 2) { setNameStatus('idle'); return }
+    const trimmed = name.trim()
+    if (trimmed.length < 2) {
+      setNameStatus('idle')
+      return false
+    }
+
     setNameStatus('checking')
     try {
-      const res = await checkTeamName(name)
+      const res = await checkTeamName(trimmed)
       if (!res.data.available) {
         setNameStatus(res.data.message.includes('institute') ? 'forbidden' : 'taken')
-      } else {
-        setNameStatus('available')
+        return false
       }
+      setNameStatus('available')
+      return true
     } catch {
       setNameStatus('idle')
+      return false
     }
   }, [])
 
-  const onStep1Submit = (data: Step1Form) => {
-    if (nameStatus === 'taken' || nameStatus === 'forbidden') return
+  const onStep1Submit = async (data: Step1Form) => {
+    const valid = await checkName(data.teamName)
+    if (!valid) return
     setTeamName(data.teamName)
     setStep(2)
   }
@@ -220,6 +294,11 @@ export default function RegisterPage() {
 
   const onStep3Submit = async (data: Step3Form) => {
     if (!leaderData) return
+    const hasFemaleParticipant = [leaderData, ...data.members].some((p) => p.gender === 'Female')
+    if (!hasFemaleParticipant) {
+      toast.error('Add at least one female participant before submitting the registration.')
+      return
+    }
     registerMutation.mutate({ teamName, leader: leaderData, members: data.members })
   }
 
@@ -247,7 +326,6 @@ export default function RegisterPage() {
 
   return (
     <>
-      <LogoBar />
       <Navbar />
       {successData && (
         <SuccessModal
@@ -258,6 +336,7 @@ export default function RegisterPage() {
       )}
 
       <main className="register-page">
+        {/* Hero */}
         <div className="register-hero">
           <div className="container">
             <h1 className="register-title">Register Your Team</h1>
@@ -279,7 +358,7 @@ export default function RegisterPage() {
             ))}
           </div>
 
-          {/* ── Step 1: Team Name ───────────────────────────── */}
+          {/* ── Step 1: Team Name ─────────────────────────── */}
           {step === 1 && (
             <div className="register-card card animate-fade-in-up">
               <div className="step-header">
@@ -338,7 +417,7 @@ export default function RegisterPage() {
             </div>
           )}
 
-          {/* ── Step 2: Leader ──────────────────────────────── */}
+          {/* ── Step 2: Leader ────────────────────────────── */}
           {step === 2 && (
             <div className="register-card card animate-fade-in-up">
               <div className="step-header">
@@ -356,7 +435,6 @@ export default function RegisterPage() {
                   prefix="leader"
                   register={step2Form.register}
                   errors={step2Form.formState.errors as Record<string, { message?: string }>}
-                  watch={step2Form.watch}
                 />
 
                 <div className="step-actions">
@@ -371,7 +449,7 @@ export default function RegisterPage() {
             </div>
           )}
 
-          {/* ── Step 3: Members ────────────────────────────── */}
+          {/* ── Step 3: Members ───────────────────────────── */}
           {step === 3 && (
             <div className="register-card card animate-fade-in-up">
               <div className="step-header">
@@ -381,6 +459,8 @@ export default function RegisterPage() {
                   <p className="step-desc">Add details for all 5 team members. <strong style={{ color: 'var(--color-warning)' }}>At least 1 female member required.</strong></p>
                 </div>
               </div>
+
+              <FemaleTracker count={femaleCount} />
 
               <form onSubmit={step3Form.handleSubmit(onStep3Submit)}>
                 {fields.map((field, idx) => (
@@ -395,7 +475,6 @@ export default function RegisterPage() {
                       prefix={`members.${idx}`}
                       register={step3Form.register}
                       errors={step3Form.formState.errors as Record<string, { message?: string }>}
-                      watch={step3Form.watch}
                     />
                   </div>
                 ))}
@@ -408,7 +487,7 @@ export default function RegisterPage() {
                 {registerMutation.isError && (
                   <div className="submit-error">
                     <AlertCircle size={16} />
-                    {(registerMutation.error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Registration failed. Please check your details and try again.'}
+                    {registrationErrorMessage(registerMutation.error as ApiError)}
                   </div>
                 )}
 

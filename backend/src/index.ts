@@ -26,10 +26,12 @@ const allowedOrigins = [
   config.adminUrl,
   'http://localhost:3000',
   'http://localhost:3001',
+  'http://localhost:3002',
   // Vite moves to 3003 when the default local ports are already occupied.
   'http://localhost:3003',
   'http://127.0.0.1:3000',
   'http://127.0.0.1:3001',
+  'http://127.0.0.1:3002',
   'http://127.0.0.1:3003',
   process.env.VERCEL_FRONTEND_URL || '',
   process.env.VERCEL_ADMIN_URL || '',

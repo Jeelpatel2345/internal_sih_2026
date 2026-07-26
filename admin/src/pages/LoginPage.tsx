@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect, KeyboardEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -10,10 +10,12 @@ import { authLogin, forgotPassword, verifyResetOTP, resetPassword } from '../ser
 import { useAuthStore } from '../stores/useAuthStore'
 import './LoginPage.css'
 
-// ─── Schemas ──────────────────────────────────────────────────
+// ─── Schemas ──────────────────────────────────────────────
 const loginSchema = z.object({
   email: z.string().email('Enter valid email'),
   password: z.string().min(1, 'Password is required'),
+  selectedRole: z.enum(['super_admin', 'admin'], { message: 'Select your role' }),
+  rememberMe: z.boolean(),
 })
 type LoginForm = z.infer<typeof loginSchema>
 
@@ -21,11 +23,6 @@ const forgotSchema = z.object({
   email: z.string().email('Enter a valid email address'),
 })
 type ForgotForm = z.infer<typeof forgotSchema>
-
-const otpSchema = z.object({
-  otp: z.string().length(6, 'OTP must be 6 digits').regex(/^\d+$/, 'OTP must be numeric'),
-})
-type OTPForm = z.infer<typeof otpSchema>
 
 const resetSchema = z.object({
   newPassword: z.string()
@@ -39,7 +36,107 @@ const resetSchema = z.object({
 })
 type ResetForm = z.infer<typeof resetSchema>
 
-// ─── Forgot Password Steps ─────────────────────────────────────
+// ─── Password Strength ─────────────────────────────────────
+function getPasswordStrength(password: string): { score: number; label: string; color: string } {
+  let score = 0
+  if (password.length >= 8) score++
+  if (/[A-Z]/.test(password)) score++
+  if (/[0-9]/.test(password)) score++
+  if (/[^A-Za-z0-9]/.test(password)) score++
+  if (password.length >= 12) score++
+
+  if (score <= 1) return { score, label: 'Weak', color: 'weak' }
+  if (score <= 2) return { score, label: 'Fair', color: 'fair' }
+  if (score <= 3) return { score, label: 'Good', color: 'good' }
+  return { score, label: 'Strong', color: 'strong' }
+}
+
+function PasswordStrengthMeter({ password }: { password: string }) {
+  if (!password) return null
+  const { score, label, color } = getPasswordStrength(password)
+  return (
+    <div className="password-strength">
+      <div className="strength-bars">
+        {[1, 2, 3, 4].map((i) => (
+          <div
+            key={i}
+            className={`strength-bar ${i <= score ? color : ''}`}
+          />
+        ))}
+      </div>
+      <span className="strength-label" style={{
+        color: color === 'weak' ? '#ef4444' : color === 'fair' ? '#f59e0b' : color === 'good' ? '#3b82f6' : '#16a34a'
+      }}>
+        {label}
+      </span>
+    </div>
+  )
+}
+
+// ─── OTP 6-Cell Input ──────────────────────────────────────
+function OTPInput({ onComplete }: { onComplete: (otp: string) => void }) {
+  const [cells, setCells] = useState(['', '', '', '', '', ''])
+  const refs = useRef<Array<HTMLInputElement | null>>([])
+
+  useEffect(() => {
+    refs.current[0]?.focus()
+  }, [])
+
+  const handleChange = (idx: number, value: string) => {
+    const digit = value.replace(/\D/g, '').slice(-1)
+    const newCells = [...cells]
+    newCells[idx] = digit
+    setCells(newCells)
+
+    if (digit && idx < 5) {
+      refs.current[idx + 1]?.focus()
+    }
+
+    const otp = newCells.join('')
+    if (otp.length === 6 && !newCells.includes('')) {
+      onComplete(otp)
+    }
+  }
+
+  const handleKeyDown = (idx: number, e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !cells[idx] && idx > 0) {
+      refs.current[idx - 1]?.focus()
+    }
+  }
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault()
+    const text = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6)
+    const newCells = Array(6).fill('')
+    text.split('').forEach((ch, i) => { newCells[i] = ch })
+    setCells(newCells)
+    if (text.length === 6) onComplete(text)
+    const focusIdx = Math.min(text.length, 5)
+    refs.current[focusIdx]?.focus()
+  }
+
+  return (
+    <div className="otp-cells">
+      {cells.map((cell, i) => (
+        <input
+          key={i}
+          ref={(el) => { refs.current[i] = el }}
+          type="text"
+          inputMode="numeric"
+          maxLength={1}
+          value={cell}
+          className={`otp-cell ${cell ? 'filled' : ''}`}
+          onChange={(e) => handleChange(i, e.target.value)}
+          onKeyDown={(e) => handleKeyDown(i, e)}
+          onPaste={handlePaste}
+          autoComplete={i === 0 ? 'one-time-code' : 'off'}
+        />
+      ))}
+    </div>
+  )
+}
+
+// ─── Forgot Password Flow ──────────────────────────────────
 type ForgotStep = 'email' | 'otp' | 'reset' | 'done'
 
 function ForgotPasswordFlow({ onBack }: { onBack: () => void }) {
@@ -48,12 +145,12 @@ function ForgotPasswordFlow({ onBack }: { onBack: () => void }) {
   const [fpOtp, setFpOtp] = useState('')
   const [showPass, setShowPass] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
+  const [otpValue, setOtpValue] = useState('')
 
   const emailForm = useForm<ForgotForm>({ resolver: zodResolver(forgotSchema) })
-  const otpForm = useForm<OTPForm>({ resolver: zodResolver(otpSchema) })
   const resetForm = useForm<ResetForm>({ resolver: zodResolver(resetSchema) })
+  const newPassword = resetForm.watch('newPassword') || ''
 
-  // Step 1: Send OTP
   const sendOtpMutation = useMutation({
     mutationFn: (data: ForgotForm) => forgotPassword(data.email),
     onSuccess: (_r, data) => {
@@ -65,19 +162,16 @@ function ForgotPasswordFlow({ onBack }: { onBack: () => void }) {
       toast.error(err?.response?.data?.message || 'Failed to send OTP. Please try again.'),
   })
 
-  // Step 2: Verify OTP (just store it, verification happens on reset)
   const verifyOtpMutation = useMutation({
-    mutationFn: (data: OTPForm) => verifyResetOTP(fpEmail, data.otp),
-    onSuccess: (_response, data) => {
-      // We store the OTP and proceed — actual verification is on reset
-      setFpOtp(data.otp)
+    mutationFn: (otp: string) => verifyResetOTP(fpEmail, otp),
+    onSuccess: (_response, otp) => {
+      setFpOtp(otp)
       setStep('reset')
     },
     onError: (err: { response?: { data?: { message?: string } } }) =>
       toast.error(err?.response?.data?.message || 'Invalid or expired OTP.'),
   })
 
-  // Step 3: Reset Password
   const resetMutation = useMutation({
     mutationFn: (data: ResetForm) => resetPassword(fpEmail, fpOtp, data.newPassword),
     onSuccess: () => {
@@ -89,7 +183,6 @@ function ForgotPasswordFlow({ onBack }: { onBack: () => void }) {
       toast.error(msg)
       if (msg.toLowerCase().includes('otp')) {
         setStep('otp')
-        otpForm.reset()
       }
     },
   })
@@ -157,7 +250,7 @@ function ForgotPasswordFlow({ onBack }: { onBack: () => void }) {
         </div>
       )}
 
-      {/* Step 2: OTP */}
+      {/* Step 2: OTP Cells */}
       {step === 'otp' && (
         <div className="fp-panel">
           <div className="fp-panel-header">
@@ -165,31 +258,18 @@ function ForgotPasswordFlow({ onBack }: { onBack: () => void }) {
             <h3>Enter OTP</h3>
             <p>We sent a 6-digit code to <strong>{fpEmail}</strong></p>
           </div>
-          <form onSubmit={otpForm.handleSubmit((d) => verifyOtpMutation.mutate(d))} className="login-form">
-            <div className="form-group">
-              <label className="form-label">6-Digit OTP</label>
-              <input
-                {...otpForm.register('otp')}
-                type="text"
-                inputMode="numeric"
-                maxLength={6}
-                className="form-input otp-input"
-                placeholder="123456"
-                autoComplete="one-time-code"
-              />
-              {otpForm.formState.errors.otp && (
-                <p className="form-error">{otpForm.formState.errors.otp.message}</p>
-              )}
-            </div>
-            <button
-              type="submit"
-              className="btn btn-primary btn-lg"
-              style={{ width: '100%' }}
-              disabled={verifyOtpMutation.isPending}
-            >
-              Verify OTP →
-            </button>
-          </form>
+
+          <OTPInput onComplete={(otp) => setOtpValue(otp)} />
+
+          <button
+            className="btn btn-primary btn-lg"
+            style={{ width: '100%', marginTop: '1rem' }}
+            disabled={verifyOtpMutation.isPending || otpValue.length < 6}
+            onClick={() => verifyOtpMutation.mutate(otpValue)}
+          >
+            {verifyOtpMutation.isPending ? <><div className="spinner" /> Verifying...</> : 'Verify OTP →'}
+          </button>
+
           <div className="fp-resend-row">
             <span>Didn't receive it?</span>
             <button
@@ -229,6 +309,7 @@ function ForgotPasswordFlow({ onBack }: { onBack: () => void }) {
                   {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
+              <PasswordStrengthMeter password={newPassword} />
               {resetForm.formState.errors.newPassword && (
                 <p className="form-error">{resetForm.formState.errors.newPassword.message}</p>
               )}
@@ -269,17 +350,22 @@ function ForgotPasswordFlow({ onBack }: { onBack: () => void }) {
   )
 }
 
-// ─── Main Login Page ───────────────────────────────────────────
+// ─── Main Login Page ───────────────────────────────────────
 export default function LoginPage() {
   const navigate = useNavigate()
   const { login } = useAuthStore()
   const [showPass, setShowPass] = useState(false)
   const [showForgot, setShowForgot] = useState(false)
 
-  const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>({ resolver: zodResolver(loginSchema) })
+  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { selectedRole: 'admin', rememberMe: true },
+  })
+
+  const selectedRole = watch('selectedRole')
 
   const loginMutation = useMutation({
-    mutationFn: (data: LoginForm) => authLogin(data.email, data.password).then((r) => r.data),
+    mutationFn: (data: LoginForm) => authLogin(data.email, data.password, data.selectedRole).then((r) => r.data),
     onSuccess: (data) => {
       login(data.data.admin, data.data.accessToken)
       toast.success(`Welcome back, ${data.data.admin.name}!`)
@@ -295,7 +381,9 @@ export default function LoginPage() {
 
   return (
     <div className="login-page">
+      {/* Left Panel */}
       <div className="login-left">
+        <div className="login-left-bg" />
         <div className="login-left-content">
           <div className="login-logo">
             <div className="login-logo-badge">SIH<br />2026</div>
@@ -313,21 +401,23 @@ export default function LoginPage() {
             Access the internal administration panel to manage team registrations, mentor details, activity logs, and portal settings.
           </p>
 
-          <div className="login-stats">
+          <div className="login-feature-list">
             {[
-              { label: 'Total Teams', val: '—' },
-              { label: 'Completed', val: '—' },
-              { label: 'Pending', val: '—' },
-            ].map((s) => (
-              <div key={s.label} className="login-stat">
-                <span className="login-stat-val">{s.val}</span>
-                <span className="login-stat-label">{s.label}</span>
+              { icon: '🏆', text: 'Monitor team registrations' },
+              { icon: '👨‍🏫', text: 'Manage mentor submissions' },
+              { icon: '📊', text: 'Real-time dashboard analytics' },
+              { icon: '⚙️', text: 'Control portal settings' },
+            ].map((f) => (
+              <div key={f.text} className="login-feature-item">
+                <span className="login-feature-icon">{f.icon}</span>
+                <span>{f.text}</span>
               </div>
             ))}
           </div>
         </div>
       </div>
 
+      {/* Right Panel */}
       <div className="login-right">
         <div className="login-card">
           {showForgot ? (
@@ -340,6 +430,19 @@ export default function LoginPage() {
               </div>
 
               <form onSubmit={handleSubmit(onSubmit)} className="login-form">
+                <div className="form-group">
+                  <label className="form-label" htmlFor="selectedRole">Select Role</label>
+                  <select
+                    id="selectedRole"
+                    {...register('selectedRole')}
+                    className="form-select"
+                  >
+                    <option value="admin">Admin</option>
+                    <option value="super_admin">Super Admin</option>
+                  </select>
+                  {errors.selectedRole && <p className="form-error">{errors.selectedRole.message}</p>}
+                </div>
+
                 <div className="form-group">
                   <label className="form-label">Email Address</label>
                   <input
@@ -374,8 +477,10 @@ export default function LoginPage() {
                   {errors.password && <p className="form-error">{errors.password.message}</p>}
                 </div>
 
-                {/* Forgot password link */}
                 <div className="forgot-link-row">
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
+                    <input {...register('rememberMe')} type="checkbox" className="remember-checkbox" /> Remember me
+                  </label>
                   <button
                     type="button"
                     className="forgot-link"

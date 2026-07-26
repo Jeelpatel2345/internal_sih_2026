@@ -1,13 +1,11 @@
 import Navbar from '../components/layout/Navbar'
 import Footer from '../components/layout/Footer'
-import LogoBar from '../components/layout/LogoBar'
 import Hero from '../components/hero/Hero'
 import { RulesSection, FAQSection, ClubsSection, MentorStatusCard } from '../components/sections/Sections'
 
 export default function HomePage() {
   return (
     <>
-      <LogoBar />
       <Navbar />
       <main>
         <Hero />

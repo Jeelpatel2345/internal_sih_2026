@@ -1,22 +1,7 @@
 export const DEPARTMENTS = [
-  'Computer Engineering',
   'Information Technology',
-  'Electronics & Communication Engineering',
-  'Electrical Engineering',
-  'Mechanical Engineering',
-  'Civil Engineering',
-  'Chemical Engineering',
-  'Automobile Engineering',
-  'Biomedical Engineering',
-  'Instrumentation & Control Engineering',
-  'Textile Engineering',
-  'Environmental Engineering',
-  'MCA',
-  'MBA',
-  'B.Sc. (IT)',
-  'B.Sc. (CS)',
-  'BCA',
-  'Other',
+  'Computer Engineering',
+  'Computer Science Engineering',
 ]
 
 export const SEMESTERS = [1, 2, 3, 4, 5, 6, 7, 8]

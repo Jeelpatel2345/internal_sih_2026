@@ -8,7 +8,6 @@ import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import Navbar from '../components/layout/Navbar'
 import Footer from '../components/layout/Footer'
-import LogoBar from '../components/layout/LogoBar'
 import { submitMentor, getTeamStatus } from '../services/api'
 import { DEPARTMENTS } from '../constants'
 import './MentorPage.css'
@@ -70,7 +69,7 @@ export default function MentorPage() {
 
   const submitMutation = useMutation({
     mutationFn: (data: MentorForm) => submitMentor({ registrationId: data.registrationId, mentor: data.mentor }).then((r) => r.data),
-    onSuccess: (data, vars) => {
+    onSuccess: (_data, vars) => {
       setSuccessData({ regId: vars.registrationId, teamName: teamInfo?.teamName || '' })
       localStorage.setItem('sih2026_mentor_status', 'completed')
       toast.success('Mentor details submitted successfully!')
@@ -85,7 +84,6 @@ export default function MentorPage() {
   if (successData) {
     return (
       <>
-        <LogoBar />
         <Navbar />
         <div className="mentor-page">
           <div className="mentor-hero">
@@ -120,7 +118,6 @@ export default function MentorPage() {
 
   return (
     <>
-      <LogoBar />
       <Navbar />
       <main className="mentor-page">
         <div className="mentor-hero">

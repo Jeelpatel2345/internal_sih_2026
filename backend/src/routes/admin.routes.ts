@@ -8,6 +8,9 @@ import {
   getActivityLogs,
   getSettings,
   updateSettings,
+  getAdminUsers,
+  createAdminUser,
+  deleteAdminUser,
 } from '../controllers/admin.controller';
 import { authenticate, requireSuperAdmin } from '../middlewares/auth.middleware';
 import { z } from 'zod';
@@ -39,5 +42,15 @@ router.put('/settings', requireSuperAdmin, validate(z.object({
   siteTitle: z.string().optional(),
   announcementBanner: z.string().optional(),
 })), updateSettings);
+
+// Admin users
+router.get('/users', requireSuperAdmin, getAdminUsers);
+router.post('/users', requireSuperAdmin, validate(z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+  password: z.string().min(8),
+  role: z.enum(['super_admin', 'admin']),
+})), createAdminUser);
+router.delete('/users/:id', requireSuperAdmin, deleteAdminUser);
 
 export default router;

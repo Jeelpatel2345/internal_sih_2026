@@ -61,6 +61,12 @@
   gap: 1rem;
 }
 
+.navbar-left-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 /* Logo */
 .navbar-logo {
   display: flex;

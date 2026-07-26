@@ -16,6 +16,12 @@ interface Team {
   createdAt: string
 }
 
+const formatDate = (value?: string) => {
+  if (!value) return '—'
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
 export default function TeamsPage() {
   const queryClient = useQueryClient()
   const [page, setPage] = useState(1)
@@ -25,7 +31,7 @@ export default function TeamsPage() {
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ['teams', page, search, status],
     queryFn: () => getTeams({ page, limit: 15, search, status }).then((r) => r.data),
   })
@@ -47,8 +53,12 @@ export default function TeamsPage() {
   }
 
   const handleViewTeam = async (id: string) => {
-    const res = await getTeamById(id)
-    setSelectedTeam(res.data.data)
+    try {
+      const res = await getTeamById(id)
+      setSelectedTeam(res.data.data)
+    } catch {
+      toast.error('Unable to load team details. Please try again.')
+    }
   }
 
   const handleExportExcel = async () => {
@@ -123,6 +133,8 @@ export default function TeamsPage() {
             <tbody>
               {isLoading ? (
                 <tr><td colSpan={8} style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>Loading...</td></tr>
+              ) : isError ? (
+                <tr><td colSpan={8}><div className="empty-state"><div className="empty-state-icon">!</div><h3>Unable to load teams</h3><p>{error instanceof Error ? error.message : 'Check the API connection and refresh the page.'}</p></div></td></tr>
               ) : teams.length === 0 ? (
                 <tr>
                   <td colSpan={8}>
@@ -152,7 +164,7 @@ export default function TeamsPage() {
                     </span>
                   </td>
                   <td style={{ color: 'var(--color-text-muted)', fontSize: '0.8125rem' }}>
-                    {new Date(team.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                    {formatDate(team.createdAt)}
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>

@@ -17,6 +17,7 @@ const router = Router();
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
+  selectedRole: z.enum(['super_admin', 'admin']).optional(),
 });
 
 const forgotSchema = z.object({
