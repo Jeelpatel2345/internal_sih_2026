@@ -35,10 +35,28 @@ export const connectNeonDB = async (): Promise<boolean> => {
   }
 };
 
-export const queryNeon = async (text: string, params?: any[]) => {
+const TRANSIENT_ERROR_CODES = new Set(['ENOTFOUND', 'ETIMEDOUT', 'ECONNRESET']);
+const isTransientError = (error: any): boolean =>
+  TRANSIENT_ERROR_CODES.has(error?.code) ||
+  /connection terminated|timeout exceeded/i.test(error?.message || '');
+
+export const queryNeon = async (
+  text: string,
+  params?: any[],
+  retries = 2
+): Promise<import('pg').QueryResult<any>> => {
   const start = Date.now();
-  const res = await neonPool.query(text, params);
-  const duration = Date.now() - start;
-  logger.debug(`Executed query: ${text} [${duration}ms] - Rows: ${res.rowCount}`);
-  return res;
+  try {
+    const res = await neonPool.query(text, params);
+    const duration = Date.now() - start;
+    logger.debug(`Executed query: ${text} [${duration}ms] - Rows: ${res.rowCount}`);
+    return res;
+  } catch (error) {
+    if (retries > 0 && isTransientError(error)) {
+      logger.error(`Transient DB error, retrying (${retries} left): ${(error as Error).message}`);
+      await new Promise((r) => setTimeout(r, 500));
+      return queryNeon(text, params, retries - 1);
+    }
+    throw error;
+  }
 };

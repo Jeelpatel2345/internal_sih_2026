@@ -40,9 +40,12 @@ const allowedOrigins = [
   process.env.VERCEL_ADMIN_URL || '',
 ].filter(Boolean);
 
+const isLocalDevOrigin = (origin: string): boolean =>
+  config.nodeEnv !== 'production' && /^https?:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin);
+
 const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin) || isLocalDevOrigin(origin)) {
       callback(null, true);
     } else {
       callback(new Error(`CORS: Origin ${origin} not allowed`));

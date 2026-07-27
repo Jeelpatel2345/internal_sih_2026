@@ -14,7 +14,7 @@ import {
 } from '../controllers/admin.controller';
 import { authenticate, requireSuperAdmin } from '../middlewares/auth.middleware';
 import { z } from 'zod';
-import { validate } from '../middlewares/validate.middleware';
+import { validate, validateUUIDParam } from '../middlewares/validate.middleware';
 
 const router = Router();
 
@@ -23,9 +23,9 @@ router.use(authenticate);
 
 // Teams
 router.get('/teams', getAllTeams);
-router.get('/teams/:id', getTeamById);
-router.put('/teams/:id', updateTeam);
-router.delete('/teams/:id', requireSuperAdmin, deleteTeam);
+router.get('/teams/:id', validateUUIDParam('id'), getTeamById);
+router.put('/teams/:id', validateUUIDParam('id'), updateTeam);
+router.delete('/teams/:id', requireSuperAdmin, validateUUIDParam('id'), deleteTeam);
 
 // Mentors
 router.get('/mentors', getAllMentors);
@@ -51,6 +51,6 @@ router.post('/users', requireSuperAdmin, validate(z.object({
   password: z.string().min(8),
   role: z.enum(['super_admin', 'admin']),
 })), createAdminUser);
-router.delete('/users/:id', requireSuperAdmin, deleteAdminUser);
+router.delete('/users/:id', requireSuperAdmin, validateUUIDParam('id'), deleteAdminUser);
 
 export default router;
