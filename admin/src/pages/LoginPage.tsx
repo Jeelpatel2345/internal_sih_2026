@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect, KeyboardEvent } from 'react'
+import { useEffect, useRef, useState } from "react";
+import type { KeyboardEvent } from "react";
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -357,12 +358,10 @@ export default function LoginPage() {
   const [showPass, setShowPass] = useState(false)
   const [showForgot, setShowForgot] = useState(false)
 
-  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<LoginForm>({
+  const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
     defaultValues: { selectedRole: 'admin', rememberMe: true },
   })
-
-  const selectedRole = watch('selectedRole')
 
   const loginMutation = useMutation({
     mutationFn: (data: LoginForm) => authLogin(data.email, data.password, data.selectedRole).then((r) => r.data),
