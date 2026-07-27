@@ -1,22 +1,36 @@
 import fs from 'fs'
+import os from 'os'
 import path from 'path'
 import winston from 'winston';
 import { config } from '../config';
 
 const { combine, timestamp, printf, colorize, json } = winston.format;
 
-// Ensure logs directory exists (prevents ENOENT when creating file transports)
-const logsDir = path.resolve(process.cwd(), 'logs')
+// Prefer writing logs to the project `logs/` directory. If that fails,
+// fall back to the system temp directory. On serverless (Vercel) we prefer
+// console-only logging unless `FORCE_FILE_LOGS=true` is set in env.
+const isServerless = Boolean(process.env.VERCEL || process.env.NOW_REGION || process.env.VERCEL_URL);
+let logsDir = path.resolve(process.cwd(), 'logs');
+const fallbackDir = path.join(os.tmpdir(), 'internal-sih-logs');
 try {
   if (!fs.existsSync(logsDir)) {
-    fs.mkdirSync(logsDir, { recursive: true })
+    fs.mkdirSync(logsDir, { recursive: true });
   }
 } catch (err) {
-  // If creating the logs directory fails, continue — console transport will still work.
-  // Avoid throwing here so the app doesn't crash during startup in restricted environments.
-  // eslint-disable-next-line no-console
-  console.warn('Could not create logs directory:', err)
+  // Try fallback location in tmp dir
+  try {
+    if (!fs.existsSync(fallbackDir)) {
+      fs.mkdirSync(fallbackDir, { recursive: true });
+    }
+    logsDir = fallbackDir;
+  } catch (err2) {
+    // If both fail, continue — console transport will still work.
+    // eslint-disable-next-line no-console
+    console.warn('Could not create logs directory or fallback:', err2);
+  }
 }
+
+const useFileTransports = !isServerless || process.env.FORCE_FILE_LOGS === 'true';
 
 const devFormat = combine(
   colorize(),
