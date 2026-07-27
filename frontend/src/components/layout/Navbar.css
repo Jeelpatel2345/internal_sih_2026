@@ -1,16 +1,26 @@
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  z-index: 9999;
+  background: var(--gradient-primary);
+  transition: width 0.15s linear;
+  pointer-events: none;
+  box-shadow: 0 0 8px rgba(193,39,45,0.5);
+}
+
 .navbar {
   position: fixed;
-  top: 0; /* flush to top now — LogoBar is gone from top */
+  top: 0;
   left: 0;
   right: 0;
   z-index: 900;
   padding: 0.875rem 0;
   transition: all var(--transition-slow);
-  /* Default: transparent over hero */
   background: transparent;
 }
 
-/* Scrolled: solid white glass */
 .navbar.scrolled {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
@@ -20,7 +30,6 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
 }
 
-/* ── Hero-mode (transparent): force white text ─────────────── */
 .navbar:not(.scrolled) .logo-main {
   color: #ffffff !important;
   text-shadow: 0 1px 4px rgba(0,0,0,0.4);
@@ -44,7 +53,6 @@
   border-color: #ffffff !important;
   background: rgba(255,255,255,0.12) !important;
 }
-/* Ghost button white style in hero mode */
 .navbar:not(.scrolled) .btn-ghost {
   color: #ffffff !important;
   border-color: rgba(255,255,255,0.5) !important;
@@ -67,7 +75,6 @@
   gap: 1rem;
 }
 
-/* Logo */
 .navbar-logo {
   display: flex;
   align-items: center;
@@ -121,7 +128,6 @@
   transition: color var(--transition-slow);
 }
 
-/* Nav links */
 .navbar-links {
   display: flex;
   align-items: center;
@@ -155,7 +161,6 @@
   gap: 0.75rem;
 }
 
-/* Hamburger */
 .navbar-hamburger {
   display: flex;
   align-items: center;
@@ -174,7 +179,6 @@
   color: var(--color-red);
 }
 
-/* Mobile menu */
 .mobile-menu {
   position: absolute;
   top: 100%;

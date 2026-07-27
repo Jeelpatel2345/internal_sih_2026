@@ -87,25 +87,49 @@ export default function MentorPage() {
         <Navbar />
         <div className="mentor-page">
           <div className="mentor-hero">
+            <div className="mentor-hero-particles">
+              <div className="mentor-hero-particle" />
+              <div className="mentor-hero-particle" />
+              <div className="mentor-hero-particle" />
+              <div className="mentor-hero-particle" />
+              <div className="mentor-hero-particle" />
+              <div className="mentor-hero-particle" />
+            </div>
             <div className="container">
               <h1 className="mentor-title">Mentor Submitted! 🎉</h1>
             </div>
           </div>
           <div className="container mentor-body">
-            <div className="mentor-card card" style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>✅</div>
-              <h2 style={{ fontFamily: 'var(--font-primary)', fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.75rem' }}>
+            <div className="mentor-card mentor-success-card card">
+              {/* Confetti celebration dots */}
+              <div className="mentor-confetti-container">
+                <div className="mentor-confetti-dot" />
+                <div className="mentor-confetti-dot" />
+                <div className="mentor-confetti-dot" />
+                <div className="mentor-confetti-dot" />
+                <div className="mentor-confetti-dot" />
+                <div className="mentor-confetti-dot" />
+                <div className="mentor-confetti-dot" />
+                <div className="mentor-confetti-dot" />
+                <div className="mentor-confetti-dot" />
+                <div className="mentor-confetti-dot" />
+                <div className="mentor-confetti-dot" />
+                <div className="mentor-confetti-dot" />
+              </div>
+
+              <div className="mentor-success-icon">✅</div>
+              <h2 className="mentor-success-title">
                 Registration Complete!
               </h2>
-              <p style={{ color: 'var(--color-text-muted)', marginBottom: '1.5rem' }}>
+              <p className="mentor-success-desc">
                 Team <strong>{successData.teamName}</strong> — all registration phases are now complete.
                 You will receive a confirmation email at your registered address.
               </p>
-              <div className="reg-id-box" style={{ marginBottom: '2rem' }}>
+              <div className="reg-id-box mentor-success-regbox" style={{ marginBottom: '2rem' }}>
                 <p className="reg-id-label">Registration ID</p>
                 <p className="reg-id-value">{successData.regId}</p>
               </div>
-              <button className="btn btn-primary btn-lg" onClick={() => navigate('/')}>
+              <button className="btn btn-primary btn-lg mentor-success-btn" onClick={() => navigate('/')}>
                 Return to Home →
               </button>
             </div>
@@ -121,9 +145,24 @@ export default function MentorPage() {
       <Navbar />
       <main className="mentor-page">
         <div className="mentor-hero">
+          <div className="mentor-hero-particles">
+            <div className="mentor-hero-particle" />
+            <div className="mentor-hero-particle" />
+            <div className="mentor-hero-particle" />
+            <div className="mentor-hero-particle" />
+            <div className="mentor-hero-particle" />
+            <div className="mentor-hero-particle" />
+          </div>
           <div className="container">
             <h1 className="mentor-title">Submit Mentor Details</h1>
             <p className="mentor-subtitle">Phase 2 of 2 — Complete your team registration</p>
+
+            {/* Phase Progress Indicator */}
+            <div className="mentor-phase-progress">
+              <div className="phase-step complete">✅ Phase 1 — Team</div>
+              <div className="phase-connector" />
+              <div className="phase-step current">🔵 Phase 2 — Mentor</div>
+            </div>
           </div>
         </div>
 
@@ -171,7 +210,7 @@ export default function MentorPage() {
 
             {/* Mentor Form */}
             {verified && (
-              <form onSubmit={handleSubmit(onSubmit)}>
+              <form onSubmit={handleSubmit(onSubmit)} className="mentor-form-reveal">
                 <div className="divider" />
                 <h3 className="mentor-section-title">Faculty Mentor Information</h3>
 
@@ -222,7 +261,7 @@ export default function MentorPage() {
                 </div>
 
                 {submitMutation.isError && (
-                  <div className="submit-error" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--color-error-bg)', border: '1px solid var(--color-error)', borderRadius: 'var(--radius-md)', padding: '0.875rem', color: 'var(--color-error)', marginBottom: '1rem' }}>
+                  <div className="mentor-submit-error">
                     <AlertCircle size={16} />
                     {(submitMutation.error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Submission failed.'}
                   </div>
@@ -230,7 +269,7 @@ export default function MentorPage() {
 
                 <button
                   type="submit"
-                  className="btn btn-primary btn-full btn-xl"
+                  className="btn btn-primary btn-full btn-xl mentor-submit-btn"
                   disabled={submitMutation.isPending}
                 >
                   {submitMutation.isPending ? (

@@ -95,6 +95,9 @@ export default function Footer() {
           <p className="footer-copyright">
             © 2026 Internal SIH — KSV / VSITR. All rights reserved.
           </p>
+          <p className="footer-made">
+            Built with ❤️ by <a href="https://pateldev.club" target="_blank" rel="noopener noreferrer">Patel Dev Club</a>
+          </p>
         </div>
       </div>
     </footer>
