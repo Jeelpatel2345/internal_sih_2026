@@ -1,11 +1,12 @@
 import axios from 'axios'
 
-const API_BASE = (import.meta.env.VITE_API_URL || 'https://internal-sih-2026-nv5t.vercel.app/api/v1').replace(/\/+$/, '')
-
+const API_BASE =
+  import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
 export const adminApi = axios.create({
   baseURL: API_BASE,
   headers: { 'Content-Type': 'application/json' },
   timeout: 15000,
+    withCredentials: true,
 })
 
 // ─── Attach JWT token ─────────────────────────────────────────
