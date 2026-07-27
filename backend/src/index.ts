@@ -1,4 +1,5 @@
 import 'express-async-errors';
+import type { IncomingMessage, ServerResponse } from 'http';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -19,15 +20,17 @@ import dashboardRoutes from './routes/dashboard.routes';
 import exportRoutes from './routes/export.routes';
 
 const app = express();
+const isVercelRuntime = Boolean(process.env.VERCEL || process.env.NOW_REGION || process.env.VERCEL_URL);
 
 // ─── CORS ─────────────────────────────────────────────────────────────
 const allowedOrigins = [
+  'https://internal-sih-2026-sd3z.vercel.app',
+  'https://internal-sih-2026-ao22-three.vercel.app',
   config.frontendUrl,
   config.adminUrl,
   'http://localhost:3000',
   'http://localhost:3001',
   'http://localhost:3002',
-  // Vite moves to 3003 when the default local ports are already occupied.
   'http://localhost:3003',
   'http://127.0.0.1:3000',
   'http://127.0.0.1:3001',
@@ -189,9 +192,23 @@ const autoSeed = async (): Promise<void> => {
 };
 
 // ─── Start ────────────────────────────────────────────────────────────
-const start = async () => {
+let initialized = false;
+
+const ensureReady = async (): Promise<void> => {
+  if (initialized) return;
   await connectNeonDB();
   await autoSeed();
+  initialized = true;
+};
+
+const start = async () => {
+  await ensureReady();
+
+  if (isVercelRuntime) {
+    logger.info('ℹ️ Vercel runtime detected — skipping app.listen()');
+    return;
+  }
+
   app.listen(config.port, () => {
     logger.info(`🚀 Server running on port ${config.port} [${config.nodeEnv}]`);
     logger.info(`🔑 Admin login: ${config.seed.adminEmail} / ${config.seed.adminPassword}`);
@@ -199,9 +216,28 @@ const start = async () => {
   });
 };
 
-start().catch((err) => {
-  logger.error('Failed to start server:', err);
-  process.exit(1);
-});
+if (!isVercelRuntime) {
+  start().catch((err) => {
+    logger.error('Failed to start server:', err);
+    process.exit(1);
+  });
+}
 
-export default app;
+export default async function handler(req: IncomingMessage, res: ServerResponse) {
+  await ensureReady();
+
+  return new Promise<void>((resolve) => {
+    const server = app as unknown as {
+      handle: (req: IncomingMessage, res: ServerResponse, callback?: (err?: unknown) => void) => void;
+    };
+
+    server.handle(req, res, (err?: unknown) => {
+      if (err) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ success: false, message: 'Internal server error' }));
+      }
+      resolve();
+    });
+  });
+}

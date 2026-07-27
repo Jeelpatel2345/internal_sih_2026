@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'
+const API_BASE = (import.meta.env.VITE_API_URL || 'https://internal-sih-2026-nv5t.vercel.app/api/v1').replace(/\/+$/, '')
 
 export const api = axios.create({
   baseURL: API_BASE,

@@ -22,8 +22,8 @@ export const config = {
     from: process.env.EMAIL_FROM || 'Internal SIH 2026 <noreply@sih2026.ac.in>',
   },
   adminEmail: process.env.ADMIN_EMAIL || '',
-  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000',
-  adminUrl: process.env.ADMIN_URL || 'http://localhost:3001',
+  frontendUrl: process.env.FRONTEND_URL || 'https://internal-sih-2026-sd3z.vercel.app',
+  adminUrl: process.env.ADMIN_URL || 'https://internal-sih-2026-ao22-three.vercel.app',
   seed: {
     adminName: process.env.SEED_ADMIN_NAME || 'Super Admin',
     adminEmail: process.env.SEED_ADMIN_EMAIL || 'admin@sih2026.ac.in',

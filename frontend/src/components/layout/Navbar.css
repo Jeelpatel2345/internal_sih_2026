@@ -25,7 +25,7 @@
     left:0;
     width:100%;
     z-index:1000;
-    padding:14px 0;
+    padding:12px 0;
     background:transparent;
     transition:all .35s ease;
 }
@@ -36,7 +36,7 @@
     -webkit-backdrop-filter:blur(18px);
     border-bottom:1px solid rgba(0,0,0,.08);
     box-shadow:0 8px 30px rgba(0,0,0,.08);
-    padding:10px 0;
+    padding:9px 0;
 }
 
 /* ==========================================
@@ -107,20 +107,17 @@
     display:flex;
     flex-direction:column;
 }
+.navbar-brand:hover .navbar-brand-logos img{
+    transform:translateY(-2px);
+}
 
 .navbar-brand-text h2{
-    margin:0;
-    font-size:1.55rem;
-    font-weight:800;
-    line-height:1.1;
-    transition:.3s;
+    font-size:1.35rem;
+    font-weight:700;
 }
 
 .navbar-brand-text span{
-    margin-top:4px;
-    font-size:.82rem;
-    letter-spacing:.08em;
-    transition:.3s;
+    font-size:.78rem;
 }
 
 /* ---------- Transparent Navbar ---------- */
@@ -221,6 +218,10 @@
     white-space:nowrap;
 }
 
+.btn-sm{
+    height:42px;
+    padding:0 20px;
+}
 /* ==========================================
    Hamburger
 ========================================== */
@@ -375,8 +376,8 @@
 }
 
 .navbar-brand-logos img{
-    width:46px;
-    height:46px;
+    width: 40px;
+    height: 40px;
     object-fit:contain;
     background:#fff;
     border-radius:10px;
@@ -394,7 +395,7 @@
 
 .navbar-brand-divider{
     width:1px;
-    height:50px;
+    height:42px;
     background:rgba(255,255,255,.25);
 }
 
@@ -454,14 +455,18 @@
 
 @media (max-width:1200px){
 
-    .navbar-inner{
-        grid-template-columns:auto auto;
-    }
+  .navbar-inner{
+    grid-template-columns:auto 1fr auto;
+    column-gap:70px;
+}
 
-    .navbar-links{
-        display:none;
-    }
+  .navbar-links{
+    gap:18px;
+}
 
+.nav-link{
+    padding:10px 16px;
+}
     .navbar-cta{
         display:none;
     }
