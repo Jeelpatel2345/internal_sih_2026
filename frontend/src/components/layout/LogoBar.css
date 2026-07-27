@@ -1,9 +1,8 @@
 .logo-corner{
-    position:static;
     display:flex;
     align-items:center;
-    margin:0;
-    padding:0;
+    gap:12px;
+    margin-right:18px;
 }
 
 .logo-corner-inner{
@@ -18,16 +17,33 @@
 }
 
 .logo-corner-img{
-    width:46px;
-    height:46px;
+    width:44px;
+    height:44px;
     object-fit:contain;
     background:#fff;
     border-radius:10px;
-    padding:4px;
-    box-shadow:0 3px 10px rgba(0,0,0,.12);
+    padding:3px;
+    transition:.3s;
+}
+
+.logo-corner-img:hover{
+    transform:translateY(-2px);
 }
 
 .logo-corner-name,
 .logo-corner-divider{
     display:none;
+}
+
+@media (max-width:640px){
+  .logo-corner{
+    flex-wrap:wrap;
+    gap:8px;
+    margin-right:0;
+  }
+
+  .logo-corner-img{
+    width:36px;
+    height:36px;
+  }
 }

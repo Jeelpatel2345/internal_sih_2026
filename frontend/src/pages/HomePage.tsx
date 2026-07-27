@@ -235,11 +235,11 @@ export default function HomePage() {
           margin-bottom: 1.75rem;
         }
         .logos-showcase {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 2rem;
-          flex-wrap: wrap;
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+          gap: 1.25rem;
+          align-items: stretch;
+          justify-items: center;
         }
         .logo-showcase-card {
           display: flex;
@@ -247,12 +247,14 @@ export default function HomePage() {
           align-items: center;
           gap: 0.875rem;
           text-decoration: none;
-          padding: 1.5rem 2rem;
+          padding: 1.5rem 1.75rem;
           border-radius: var(--radius-xl);
           border: 1.5px solid var(--color-border);
           background: white;
           transition: all 0.3s ease;
-          min-width: 170px;
+          width: 100%;
+          max-width: 260px;
+          min-width: 0;
         }
         .logo-showcase-card:hover {
           border-color: var(--color-red);
@@ -260,8 +262,8 @@ export default function HomePage() {
           box-shadow: 0 12px 32px rgba(193,39,45,0.12);
         }
         .logo-showcase-img-wrap {
-          width: 90px;
-          height: 90px;
+          width: 80px;
+          height: 80px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -270,6 +272,7 @@ export default function HomePage() {
           width: 100%;
           height: 100%;
           object-fit: contain;
+          display: block;
         }
         .logo-showcase-img-wrap--sih img {
           border-radius: 50%;
@@ -290,24 +293,51 @@ export default function HomePage() {
           background-clip: text;
         }
         .logo-showcase-fullname {
-          font-size: 0.6875rem;
+          font-size: 0.75rem;
           color: var(--color-text-muted);
           font-weight: 500;
           text-align: center;
-          max-width: 130px;
-          line-height: 1.3;
+          max-width: 100%;
+          line-height: 1.4;
         }
         .logo-showcase-x {
           font-size: 1.5rem;
           color: var(--color-border);
           font-weight: 300;
           line-height: 1;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 32px;
+        }
+        @media (max-width: 960px) {
+          .logos-showcase {
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+          }
+          .logo-showcase-img-wrap {
+            width: 70px;
+            height: 70px;
+          }
         }
         @media (max-width: 640px) {
-          .logos-showcase { gap: 1rem; }
-          .logo-showcase-card { min-width: 130px; padding: 1rem 1.25rem; }
-          .logo-showcase-img-wrap { width: 64px; height: 64px; }
-          .logo-showcase-x { font-size: 1rem; }
+          .logos-showcase {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+          }
+          .logo-showcase-card {
+            padding: 1rem 1.25rem;
+            max-width: 100%;
+          }
+          .logo-showcase-img-wrap {
+            width: 60px;
+            height: 60px;
+          }
+          .logo-showcase-fullname {
+            font-size: 0.72rem;
+          }
+          .logo-showcase-x {
+            display: none;
+          }
         }
       `}</style>
     </>

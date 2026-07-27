@@ -537,10 +537,14 @@
 
     .navbar-brand{
         gap:10px;
+        flex-wrap: wrap;
+        justify-content: space-between;
     }
 
     .navbar-brand-logos{
         gap:6px;
+        flex-wrap: wrap;
+        justify-content: flex-start;
     }
 
     .navbar-brand-logos img{
